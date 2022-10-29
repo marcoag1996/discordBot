@@ -2,7 +2,8 @@ require("dotenv").config();
 
 const {REST} = require("@discordjs/rest");
 const {Routes} = require("discord-api-types/v9");
-const {Client, GatewayIntentBits, Collection, CommandInteractionOptionResolver, InteractionCollector} = require("discord.js");
+//const { Routes, ApplicationCommandOptionType } = require("discord.js");
+const {Client, GatewayIntentBits, Collection} = require("discord.js");
 const {Player} = require("discord-player");
 
 const fs = require("node:fs");
@@ -19,6 +20,8 @@ const client = new Client({
     ]
 })
 
+/*REPRODUCIR MUSICA */
+
 const commands = []
 
 client.commands = new Collection();
@@ -31,17 +34,20 @@ for(const file of commandFiles) {
     const command = require(filePath);
 
     client.commands.set(command.data.name, command);
-    commands.push(command);
+    commands.push(command.data.toJSON());
 }
 
 client.player = new Player(client, {
     ytdlOptions: {
+        filter: "audioonly",
         quality: "highestaudio",
-        highWaterMark: 1 << 25
+        highWaterMark: 1 << 25,
+        dlChunkSize: 0,
     }
 });
 
 client.once("ready", () => {
+    console.log('Bot is online!');
     const guild_ids = client.guilds.cache.map(guild => guild.id);
 
     const rest = new REST({version: "9"}).setToken(process.env.TOKEN);
@@ -58,8 +64,10 @@ client.on("interactionCreate", async interaction => {
     if(!interaction.isCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
-    if(!command) return;
-
+    if(!command) {
+        console.log("Not music command");
+        return;
+    }
     try
     {
         await command.execute({client, interaction});
@@ -76,10 +84,11 @@ client.on("interactionCreate", async interaction => {
 
 const prefix = '-';
 
+/*
 client.once('ready', () => {
     console.log('Bot is online!');
 });
-
+*/
 
 client.on('messageCreate', message => {
     if(!message.content.startsWith(prefix) || message.author.bot) {
@@ -88,8 +97,8 @@ client.on('messageCreate', message => {
     }
     const args = message.content.slice(prefix.length).split(/ +/);
     const command = args.shift().toLowerCase();
-    if(command === 'ping') {
-        message.channel.send('pong!');
+    if(command === 'julio' || command === 'alejo') {
+        message.channel.send('Le gustan los hombres!');
         console.log('sending message');
     }
 });
